@@ -1,1 +1,1 @@
-# custom_iterator
+# Skeleton C++ structure for experimentation
