@@ -9,6 +9,7 @@ public:
     virtual ~Event() {}
     void freeEvent()
     {
+        // In practice this likly moves this event to a free list or pool
         delete this;
     }
     virtual const char *kind() const = 0;
