@@ -9,12 +9,16 @@ namespace wrapper
     class EventDeleter
     {
     public:
-        using PointerType = std::unique_ptr<Event, EventDeleter>;
+        using PointerType = std::shared_ptr<Event>;
         /// @brief unique_ptr interface to drop an event
         /// @param e the event to be dropped
         inline void operator()(Event *e)
         {
             e->freeEvent();
+        }
+        static inline PointerType wrap(Event *e)
+        {
+            return PointerType(e, EventDeleter());
         }
     };
 
@@ -33,7 +37,7 @@ namespace wrapper
         // return a smart pointer version of our Event object.
         inline EventDeleter::PointerType nextEvent()
         {
-            return EventDeleter::PointerType(events.nextEvent());
+            return EventDeleter::wrap(events.nextEvent());
         }
 
     private:
@@ -43,12 +47,13 @@ namespace wrapper
         {
         public:
             // Takes ownership of the passed in me pointer type
-            EventIterator(EventDeleter::PointerType me, WrappedEvents &events) : me(me.release()), events(events) {}
+            EventIterator(EventDeleter::PointerType me, WrappedEvents &events) : me(me), events(events) {}
 
             // Relinquish control of the event to the caller through smart pointers
             inline EventDeleter::PointerType operator*()
             {
-                return EventDeleter::PointerType(me.release());
+                // Will happy make a copy of it
+                return me;
             }
 
             /// @brief Get the next event through the events reference we are holding.
