@@ -109,7 +109,7 @@ TEST(EventTests, RawImplement)
     // Typical user code
     while (Event *event_ptr = events.nextEvent())
     {
-        std::unique_ptr<Event, EventDeleter> event(event_ptr);
+        std::shared_ptr<Event> event(event_ptr, EventDeleter());
 
         if (std::string("MyEvent") == event->kind())
         {
@@ -117,7 +117,6 @@ TEST(EventTests, RawImplement)
         }
     }
 
-    // We have leaked memory because AnotherEvent isn't freed
     ASSERT_EQ(live_events, 0);
 }
 
@@ -137,10 +136,15 @@ TEST(EventTests, WrapperImplement)
     // Typical user code
     while (auto event = wrapped.nextEvent())
     {
+        std::cout << "Got event: " << event->kind() << std::endl;
+        std::cout << event.get() << std::endl;
         if (std::string("MyEvent") == event->kind())
         {
             // Do something special with event
         }
+        std::cout << "going to Reset\n";
+        event.reset();
+        std::cout << "Reset\n";
     }
 
     // We have leaked memory because AnotherEvent isn't freed
@@ -191,5 +195,33 @@ TEST(EventTests, DoubleFree)
     }
 
     // We have leaked memory because AnotherEvent isn't freed
+    ASSERT_EQ(live_events, 0);
+}
+
+TEST(EventTests, DeferredDelete)
+{
+    EventGenerator events;
+
+    int live_events = 0;
+
+    events.addEvent(new MyEvent(live_events));
+    events.addEvent(new AnotherEvent(live_events));
+    ASSERT_EQ(live_events, 2);
+
+    // Typical user code
+    EventDeleter::PointerType keep_around;
+    for (auto event : WrappedEvents(events))
+    {
+        if (std::string("MyEvent") == event->kind())
+        {
+            keep_around = event;
+            // Need to filter out in CI that there are no user calls to freeEvent
+            // event->freeEvent(); /// BADD
+        }
+    }
+
+    // We have leaked memory because AnotherEvent isn't freed
+    ASSERT_EQ(live_events, 1);
+    keep_around.reset();
     ASSERT_EQ(live_events, 0);
 }

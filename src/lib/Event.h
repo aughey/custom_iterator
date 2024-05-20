@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <assert.h>
+#include <iostream>
 
 class Event
 {
@@ -9,10 +10,14 @@ public:
     virtual ~Event()
     {
         assert(freed_through_free_event == true);
+        assert(!already_freed);
+        already_freed = true;
     }
-    void freeEvent()
+    virtual void freeEvent()
     {
         // In practice, this will re-add itself to some free list
+        assert(!freed_through_free_event);
+        assert(!already_freed);
         freed_through_free_event = true;
         delete this;
     }
@@ -20,6 +25,7 @@ public:
 
 private:
     bool freed_through_free_event = false;
+    bool already_freed = false;
 };
 
 class IEventGenerator

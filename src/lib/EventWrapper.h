@@ -14,7 +14,10 @@ namespace wrapper
         /// @param e the event to be dropped
         inline void operator()(Event *e)
         {
-            e->freeEvent();
+            if (e)
+            {
+                e->freeEvent();
+            }
         }
         static inline PointerType wrap(Event *e)
         {
@@ -47,7 +50,7 @@ namespace wrapper
         {
         public:
             // Takes ownership of the passed in me pointer type
-            EventIterator(EventDeleter::PointerType me, WrappedEvents &events) : me(me), events(events) {}
+            EventIterator(const EventDeleter::PointerType &me, WrappedEvents &events) : me(me), events(events) {}
 
             // Relinquish control of the event to the caller through smart pointers
             inline EventDeleter::PointerType operator*()
