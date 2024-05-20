@@ -11,14 +11,15 @@ public:
     {
         assert(freed_through_free_event == true);
         assert(!already_freed);
+        // This shouldn't stay valid through a destructor, but it's a "just in case"
         already_freed = true;
     }
     virtual void freeEvent()
     {
-        // In practice, this will re-add itself to some free list
         assert(!freed_through_free_event);
         assert(!already_freed);
         freed_through_free_event = true;
+        // In practice, this will re-add itself to some free list
         delete this;
     }
     virtual const char *kind() const = 0;
