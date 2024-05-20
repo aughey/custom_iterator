@@ -10,8 +10,8 @@ if(CMAKE_C_COMPILER MATCHES "mingw32")
     add_link_options(-static -static-libgcc -static-libstdc++)
 endif()
 
-# GoogleTest requires at least C++14
-set(CMAKE_CXX_STANDARD 14)
+# GoogleTest requires at least C++20
+set(CMAKE_CXX_STANDARD 20)
 
 if(MSVC)
   add_compile_options(PRIVATE /W4 /WX)
